@@ -47,11 +47,11 @@ export async function createCheckoutSession(data: FormData): Promise<void> {
             {
                 quantity: 1,
                 price_data: {
-                    currency: 'cad',
+                    currency: 'npr',
                     product_data: {
                         name: `Parking at ${data.get('address') as string}`
                     },
-                    unit_amount: formatAmountForStripe(Number(data.get('amount')), 'CAD')
+                    unit_amount: formatAmountForStripe(Number(data.get('amount')), 'NPR')
                 }
             }
         ],

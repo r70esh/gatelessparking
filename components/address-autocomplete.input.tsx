@@ -1,4 +1,3 @@
-
 import { LatLng } from '@/types'
 import React, { useEffect, useRef, useState } from 'react'
 import { useJsApiLoader } from '@react-google-maps/api'
@@ -27,40 +26,45 @@ function AddressAutoCompleteInput({
 
     useEffect(() => {
 
-        if (isLoaded) {
-            const ontarioBounds = new google.maps.LatLngBounds(
-                new google.maps.LatLng({ lat: 48.4026688, lng: -89.4053302 }), // south west
-                new google.maps.LatLng({ lat: 54.3666786, lng: -82.5269667 }) // north east
+        if (isLoaded && placesAutoCompleteRef.current) {
+            // Bounds roughly covering Nepal
+            const nepalBounds = new google.maps.LatLngBounds(
+                new google.maps.LatLng({ lat: 26.347, lng: 80.058 }), // south west
+                new google.maps.LatLng({ lat: 30.447, lng: 88.201 })  // north east
             )
 
-            const gAutoComplete  = new google.maps.places.Autocomplete(placesAutoCompleteRef.current as HTMLInputElement, {
-                bounds: ontarioBounds,
-                fields: ['formatted_address', 'geometry'],
-                componentRestrictions: {
-                    country: ['ca']
+            const gAutoComplete = new google.maps.places.Autocomplete(
+                placesAutoCompleteRef.current, 
+                {
+                    bounds: nepalBounds,
+                    fields: ['formatted_address', 'geometry'],
+                    componentRestrictions: { country: ['np'] } // restrict to Nepal
                 }
-            })
+            )
 
             gAutoComplete.addListener('place_changed', () => {
                 const place = gAutoComplete.getPlace()
                 const position = place.geometry?.location
-                onAddressSelect(place.formatted_address!, {
-                    lat: position?.lat()!,
-                    lng: position?.lng()!
-                })
+                if (position && place.formatted_address) {
+                    onAddressSelect(place.formatted_address, {
+                        lat: position.lat(),
+                        lng: position.lng()
+                    })
+                }
             })
+
+            setAutoComplete(gAutoComplete)
         }
-    }, [isLoaded])
+    }, [isLoaded, onAddressSelect])
 
     useEffect(() => {
-        // https://github.com/radix-ui/primitives/issues/1859
-        // Disable Radix ui dialog pointer events lockout
+        // Disable Radix UI dialog pointer events lockout
         setTimeout(() => (document.body.style.pointerEvents = ""), 0)
-    })
+    }, [])
 
-  return (
-    <Input ref={placesAutoCompleteRef} defaultValue={selectedAddress} />
-  )
+    return (
+        <Input ref={placesAutoCompleteRef} defaultValue={selectedAddress} />
+    )
 }
 
 export default AddressAutoCompleteInput

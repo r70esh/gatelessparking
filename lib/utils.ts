@@ -64,7 +64,7 @@ export const buildMapInfoCardContent = (title: string, address: string, totalSpo
       <div>${address}</div>
       <hr />
       <div>Total spots: ${totalSpots}</div>
-      <div>Hourly price: ${formatAmountForDisplay(price, 'CAD')}</div>
+      <div>Hourly price: ${formatAmountForDisplay(price, 'NPR')}</div>
       </div>
       
   </div>
