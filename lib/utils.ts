@@ -10,20 +10,26 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-
 export function formatAmountForDisplay(
-  amount: number, currency: string
+  amount: number,
+  currency: string
 ): string {
 
-  let numberFormat = new Intl.NumberFormat(['en-US'], {
-    style:'currency',
-    currency: currency,
-    currencyDisplay: 'symbol'
+  if (currency === 'NPR') {
+    if (isNaN(amount)) return ''
+    return `Rs. ${amount.toFixed(2)}`
+  }
+
+  const numberFormat = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency:"NPR",
+    currencyDisplay: 'symbol',
   })
 
-  const formatedAmount = numberFormat.format(amount)
-  return formatedAmount === 'NaN' ? '' : formatedAmount
+  const formattedAmount = numberFormat.format(amount)
+  return formattedAmount === 'NaN' ? '' : formattedAmount
 }
+
 
 export function formatAmountForStripe(
   amount: number,
@@ -64,7 +70,7 @@ export const buildMapInfoCardContent = (title: string, address: string, totalSpo
       <div>${address}</div>
       <hr />
       <div>Total spots: ${totalSpots}</div>
-      <div>Hourly price: ${formatAmountForDisplay(price, 'CAD')}</div>
+      <div>Hourly price: ${formatAmountForDisplay(price, 'NPR')}</div>
       </div>
       
   </div>

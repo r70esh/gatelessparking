@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react'
-import { Input } from './ui/input'
 import { Form, FormControl, FormField, FormItem, FormLabel } from './ui/form'
 import { Label } from './ui/label'
 import { z } from 'zod'
@@ -17,7 +16,6 @@ const FormSchema = z.object({
     arrivingon: z.date({
         required_error: "Date is required"
     }),
-    // gps coords
     gpscoords: z.object({
         lat: z.number(),
         lng: z.number()
@@ -39,7 +37,12 @@ function SearchForm({
     const form = useForm<z.infer<typeof FormSchema>>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            leavingtime: ''
+            leavingtime: '',
+            address: '',
+            gpscoords: {
+                lat: 27.7172, // Kathmandu default
+                lng: 85.3240
+            }
         }
     })
 
@@ -54,23 +57,27 @@ function SearchForm({
         }
     }, [arrivingTime, form])
 
-    function onSubmit(formData: z.infer<typeof FormSchema>) {
-        
-        const data = { ...formData, arrivingon: format(formData.arrivingon, 'yyyy-MM-dd')}
-
-        onSearch(data)
-    }
-
     const handleAddressSelect = (address: string, gpscoords: LatLng) => {
         form.setValue('address', address)
         form.setValue('gpscoords', gpscoords)
-
     }
+
+    function onSubmit(formData: z.infer<typeof FormSchema>) {
+        const data = { 
+            ...formData, 
+            arrivingon: format(formData.arrivingon, 'yyyy-MM-dd')
+        }
+        onSearch(data)
+    }
+
     return (
         <div className="flex flex-col lg:flex-row">
             <div className='grid gap-y-1.5 lg:w-1/2'>
                 <Label htmlFor='parkingat'>Address</Label>
-                <AddressAutoCompleteInput onAddressSelect={handleAddressSelect} selectedAddress='' />
+                <AddressAutoCompleteInput 
+                    onAddressSelect={handleAddressSelect} 
+                    selectedAddress={form.getValues('address')} 
+                />
             </div>
 
             <Form {...form}>
@@ -88,28 +95,32 @@ function SearchForm({
                             </FormItem>
                         )}
                     />
+
                     <FormField 
                         control={form.control}
                         name='arrivingtime'
                         render={({ field }) => (
                             <FormItem className='lg:w-[250px] grid'>
-                                <FormLabel>Arriving on</FormLabel>
+                                <FormLabel>Arriving at</FormLabel>
                                 <FormControl>
                                     <TimeSelect onChange={field.onChange} defaultValue={field.value} />
                                 </FormControl>
                             </FormItem>
                         )}
                     />
+
                     <FormField 
                         control={form.control}
                         name='leavingtime'
                         render={({ field }) => (
                             <FormItem className='lg:w-[250px] grid'>
-                                <FormLabel>Leaving on</FormLabel>
+                                <FormLabel>Leaving at</FormLabel>
                                 <FormControl>
                                     <TimeSelect 
-                                    disableTime={form.getValues('arrivingtime')}
-                                    onChange={field.onChange} defaultValue={field.value} />
+                                        disableTime={form.getValues('arrivingtime')}
+                                        onChange={field.onChange} 
+                                        defaultValue={field.value} 
+                                    />
                                 </FormControl>
                             </FormItem>
                         )}

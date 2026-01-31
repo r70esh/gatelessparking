@@ -1,6 +1,14 @@
 'use client'
 
-import { buildMapInfoCardContent, buildMapInfoCardContentForDestination, destinationPin, getStreetFromAddress, libs, parkingPin, parkingPinWithIndex } from "@/lib/utils"
+import { 
+    buildMapInfoCardContent, 
+    buildMapInfoCardContentForDestination, 
+    destinationPin, 
+    getStreetFromAddress, 
+    libs, 
+    parkingPin, 
+    parkingPinWithIndex 
+} from "@/lib/utils"
 import { MapAddressType, MapParams } from "@/types"
 import { useJsApiLoader } from "@react-google-maps/api"
 import { useEffect, useRef } from "react"
@@ -21,12 +29,14 @@ function Map({ mapParams }: { mapParams: string}) {
     const getPinType = (loc: MapParams): string => {
         return loc.type === MapAddressType.DESTINATION ? 'parking_destination_tr' : 'parking_pin_tr'
     }
+
     useEffect(() => {
         if (isLoaded) {
             const mapOptions = {
                 center: {
-                    lat: params[0].gpscoords.lat,
-                    lng: params[0].gpscoords.lng
+                    // Default to Kathmandu, Nepal
+                    lat: params[0]?.gpscoords?.lat ?? 27.7172,
+                    lng: params[0]?.gpscoords?.lng ?? 85.3240
                 },
                 zoom: 14,
                 mapId: 'MY-MAP-ID-1234'
@@ -35,9 +45,8 @@ function Map({ mapParams }: { mapParams: string}) {
             const gMap = new google.maps.Map(mapRef.current as HTMLDivElement, mapOptions)
 
             setMarker(gMap)
-
         }
-    },[isLoaded])
+    }, [isLoaded])
 
     function setMarker(map: google.maps.Map) {
         infoWindow = new google.maps.InfoWindow({
@@ -48,25 +57,33 @@ function Map({ mapParams }: { mapParams: string}) {
 
             const marker = new google.maps.marker.AdvancedMarkerElement({
                 map: map,
-                position: loc.gpscoords,
+                position: {
+                    lat: loc.gpscoords?.lat ?? 27.7172,
+                    lng: loc.gpscoords?.lng ?? 85.3240
+                },
                 title: loc.address
             })
 
             if (loc.type === MapAddressType.PARKINGLOCATION) {
-                marker.setAttribute("content", buildMapInfoCardContent(getStreetFromAddress(loc.address),
-                loc.address,
-                loc.numberofspots as number,
-                loc.price?.hourly as number))
+                marker.setAttribute("content", buildMapInfoCardContent(
+                    getStreetFromAddress(loc.address),
+                    loc.address,
+                    loc.numberofspots as number,
+                    loc.price?.hourly as number
+                ))
 
                 marker.content = parkingPinWithIndex(getPinType(loc), index).element
             } else if(loc.type === MapAddressType.ADMIN) {
-                marker.setAttribute("content", buildMapInfoCardContent(getStreetFromAddress(loc.address),
-                loc.address,
-                loc.numberofspots as number,
-                loc.price?.hourly as number))
+                marker.setAttribute("content", buildMapInfoCardContent(
+                    getStreetFromAddress(loc.address),
+                    loc.address,
+                    loc.numberofspots as number,
+                    loc.price?.hourly as number
+                ))
 
                 marker.content = parkingPin(getPinType(loc)).element
             } else {
+                // For destination type
                 const cityCircle = new google.maps.Circle({
                     strokeColor: '#00FF00',
                     strokeOpacity: 0.8,
@@ -75,14 +92,17 @@ function Map({ mapParams }: { mapParams: string}) {
                     fillOpacity: 0.35,
                     map,
                     center: {
-                        lat: params[0].gpscoords.lat,
-                        lng: params[0].gpscoords.lng
+                        lat: loc.gpscoords?.lat ?? 27.7172,
+                        lng: loc.gpscoords?.lng ?? 85.3240
                     },
                     radius: loc.radius
                 })
 
                 marker.content = destinationPin(getPinType(loc)).element
-                marker.setAttribute("content", buildMapInfoCardContentForDestination(getStreetFromAddress(loc.address), loc.address))
+                marker.setAttribute("content", buildMapInfoCardContentForDestination(
+                    getStreetFromAddress(loc.address),
+                    loc.address
+                ))
             }
 
             marker.addListener('click', () => {
@@ -99,7 +119,9 @@ function Map({ mapParams }: { mapParams: string}) {
     return (
         <div className="flex flex-col space-y-4">
             {
-                isLoaded ? <div style={{ height: '600px'}} ref={mapRef} /> : <p>Loading...</p>
+                isLoaded 
+                ? <div style={{ height: '600px'}} ref={mapRef} /> 
+                : <p>Loading...</p>
             }
         </div>
     )
