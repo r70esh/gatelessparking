@@ -1,7 +1,7 @@
 import { Booking } from "@/schemas/booking"
 import { Library } from "@googlemaps/js-api-loader"
 import { type ClassValue, clsx } from "clsx"
-import { compareAsc, differenceInMinutes, getHours, getMinutes } from "date-fns"
+import { compareAsc, differenceInMinutes, getHours, getMinutes, isValid } from "date-fns"
 import { twMerge } from "tailwind-merge"
 
 export const libs: Library[] = ['core', 'maps', 'places', 'marker']
@@ -10,161 +10,116 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatAmountForDisplay(
-  amount: number,
-  currency: string
-): string {
+// --- Formatting Utilities ---
 
+export function formatAmountForDisplay(amount: number, currency: string): string {
+  if (isNaN(amount)) return ''
   if (currency === 'NPR') {
-    if (isNaN(amount)) return ''
-    return `Rs. ${amount.toFixed(2)}`
+    return `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
   }
-
-  const numberFormat = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency:"NPR",
-    currencyDisplay: 'symbol',
-  })
-
-  const formattedAmount = numberFormat.format(amount)
-  return formattedAmount === 'NaN' ? '' : formattedAmount
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: "NPR" }).format(amount)
 }
 
-
-export function formatAmountForStripe(
-  amount: number,
-  currency: string
-): number {
-
-  let numberFormat = new Intl.NumberFormat(['en-US'], {
-    style:'currency',
-    currency: currency,
-    currencyDisplay: 'symbol'
-  })
-
+export function formatAmountForStripe(amount: number, currency: string): number {
+  const numberFormat = new Intl.NumberFormat('en-US', { style: 'currency', currency: currency })
   const parts = numberFormat.formatToParts(amount)
-  let zeroDecimalCurrency: boolean = true
-
-  for (let part of parts) {
-    if (part.type === 'decimal') {
-      zeroDecimalCurrency = false
-    }
-  }
-
-  return zeroDecimalCurrency ? amount : Math.round(amount * 100)
+  const isZeroDecimal = !parts.some(part => part.type === 'decimal')
+  return isZeroDecimal ? amount : Math.round(amount * 100)
 }
-
 
 export function getStreetFromAddress(address: string) {
+  if (!address) return ''
   return address.split(',')[0]
 }
 
-/// google maps
-export const buildMapInfoCardContent = (title: string, address: string, totalSpots: number, price: number)
-: string => {
+// --- Time Utilities ---
 
+export type ReturnType = { time: string; display: string }
+
+export function getTimeSlots(startTime = "00:00", endTime = "23:45"): ReturnType[] {
+  const timeArray: ReturnType[] = []
+  const parsedStartTime = new Date(`2000-01-01T${startTime}:00`)
+  const parsedEndTime = new Date(`2000-01-01T${endTime}:00`)
+  let currentTime = parsedStartTime
+
+  while (currentTime <= parsedEndTime) {
+    const hours = currentTime.getHours().toString().padStart(2, "0")
+    const minutes = currentTime.getMinutes().toString().padStart(2, "0")
+    const hourNum = currentTime.getHours()
+    const ampm = hourNum < 12 ? "AM" : "PM"
+    const displayHour = hourNum % 12 || 12
+    timeArray.push({
+      time: `${hours}:${minutes}`,
+      display: `${displayHour}:${minutes} ${ampm}`
+    })
+    currentTime.setMinutes(currentTime.getMinutes() + 30)
+  }
+  return timeArray
+}
+
+// --- Timeline Rendering Utilities ---
+
+export function sortcomparer(b1: Booking, b2: Booking) {
+  return compareAsc(new Date(b1.starttime), new Date(b2.starttime))
+}
+
+export function blockLength(starttime: Date | string, endtime: Date | string) {
+  const start = new Date(starttime), end = new Date(endtime)
+  return isValid(start) && isValid(end) ? differenceInMinutes(end, start) : 0
+}
+
+export function blockPostion(starttime: Date | string) {
+  const start = new Date(starttime)
+  if (!isValid(start)) return 0
+  return (getHours(start) * 60) + getMinutes(start)
+}
+
+// --- Google Maps Content Builders ---
+
+export const buildMapInfoCardContent = (title: string, address: string, totalSpots: number, price: number): string => {
   return `
     <div class="map_infocard_content">
       <div class="map_infocard_title">${title}</div>
       <div class="map_infocard_body">
-      <div>${address}</div>
-      <hr />
-      <div>Total spots: ${totalSpots}</div>
-      <div>Hourly price: ${formatAmountForDisplay(price, 'NPR')}</div>
+        <div>${address}</div>
+        <hr />
+        <div>Total spots: ${totalSpots}</div>
+        <div>Price: ${formatAmountForDisplay(price, 'NPR')}/hr</div>
       </div>
-      
-  </div>
-  `
+    </div>`
 }
 
 export const buildMapInfoCardContentForDestination = (title: string, address: string): string => {
   return `
   <div class="map_infocard_content">
       <div class="map_infocard_title">${title}</div>
-      <div class="map_infocard_body">
-      <div>${address}</div>
-      </div>
-      
-  </div>`;
+      <div class="map_infocard_body"><div>${address}</div></div>
+  </div>`
 }
 
+// --- Google Maps Custom Pin Builders ---
+
 export const parkingPin = (type: string) => {
+  if (typeof window === 'undefined') return null
   const glyphImg = document.createElement('div')
-  glyphImg.innerHTML = `
-    <div class="map_pin_container">
-      <img src='http://localhost:3000/${type}.png' />
-    </div>
-  `
-
-  const pinElement = new google.maps.marker.PinElement({
-    glyph: glyphImg
-  })
-
-  return pinElement
+  glyphImg.innerHTML = `<div class="map_pin_container"><img src="/${type}.png" /></div>`
+  return new google.maps.marker.PinElement({ glyph: glyphImg })
 }
 
 export const parkingPinWithIndex = (type: string, index: number) => {
+  if (typeof window === 'undefined') return null
   const glyphImg = document.createElement('div')
   glyphImg.innerHTML = `
     <div class="map_pin_container">
       <div class="map_pin_id"><span>${index}</span></div>
-      <img src='http://localhost:3000/${type}.png' />
-    </div>
-  `
-
-  const pinElement = new google.maps.marker.PinElement({
-    glyph: glyphImg
-  })
-
-  return pinElement
+      <img src="/${type}.png" />
+    </div>`
+  return new google.maps.marker.PinElement({ glyph: glyphImg })
 }
 
 export const destinationPin = (type: string) => {
-  const glyphImg = document.createElement('img');
-  glyphImg.src = `http://localhost:3000/${type}.png`;
-  const pinElement = new google.maps.marker.PinElement({
-      glyph: glyphImg
-  })
-
-  return pinElement
-}
-
-export type ReturnType = {
-  time: string,
-  display: string
-}
-export function getTimeSlots(startTime = "00:00", endTime="23:45"): ReturnType[] {
-  const timeArray : ReturnType[] = []
-  const parsedStartTime: Date = new Date(`2000-01-01T${startTime}:00`)
-  const parsedEndTime: Date = new Date(`2000-01-01T${endTime}:00`)
-
-  let currentTime: Date = parsedStartTime
-  while (currentTime <= parsedEndTime) {
-    const hours = currentTime.getHours().toString().padStart(2, "0")
-    const minutes = currentTime.getMinutes().toString().padStart(2, "0")
-    const ampm = currentTime.getHours() < 12 ? "AM" : "PM"
-    const timeString = `${hours}:${minutes} ${ampm}`
-    timeArray.push({
-      time: `${hours}:${minutes}`,
-      display: timeString
-    })
-
-    currentTime.setMinutes(currentTime.getMinutes() + 30)
-  }
-
-  return timeArray
-}
-
-export function sortcomparer(b1: Booking, b2: Booking) {
-  return compareAsc(b1.starttime, b2.starttime)
-}
-
-export function blockLength(starttime: Date, endtime: Date) {
-  return differenceInMinutes(endtime, starttime)
-}
-
-export function blockPostion(starttime: Date) {
-  const h = getHours(starttime)
-  const m = getMinutes(starttime)
-  return (h * 60) + m
+  if (typeof window === 'undefined') return null
+  const glyphImg = document.createElement('img')
+  glyphImg.src = `/${type}.png`
+  return new google.maps.marker.PinElement({ glyph: glyphImg })
 }

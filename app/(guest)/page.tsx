@@ -1,89 +1,83 @@
 import Footer from "@/components/footer";
 import SearchComponent from "@/components/search-component";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-
 
 export default function Home() {
   return (
-    <main className="sm:container">
+    <main className="min-h-screen bg-[#0f172a] text-slate-200">
+      
+      {/* 1. Search Section - The absolute top of the page */}
+      <section className="relative pt-24 pb-12">
+        <SearchComponent />
+      </section>
 
-      {/* Search form */}
-      <SearchComponent />
+      {/* 2. Value Proposition */}
+      <div className="max-w-7xl mx-auto px-6 pt-24 pb-16">
+        <h3 className="text-4xl md:text-6xl font-black text-white text-center tracking-tighter">
+          There is always a <span className="text-purple-500">spot available.</span>
+        </h3>
+        <p className="text-center text-slate-400 mt-6 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+          No more running around looking for a parking spot. Book your space in seconds and drive straight to your destination.
+        </p>
+      </div>
 
-      <h3 className="text-2xl sm:text-4xl font-bold text-slate-500 pt-16 pb-16 text-center uppercase tracking-wide">
-        There is always a spot available.
-      </h3>
+      {/* 3. Modernized Steps Section */}
+      <section className="py-24 bg-black/20 border-y border-white/5">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+            
+            {/* Background Connector Line (Hidden on mobile) */}
+            <div className="hidden md:block absolute top-12 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-500/30 to-transparent -z-0" />
 
-      <section className="hidden lg:block pt-16 pb-32">
-        <div className="grid grid-cols-3 place-items center">
-
-          <div className="flex flex-col items-center">
-            <div className="flex flex-col bg-blue-500 text-white relative justify-center items-center rounded-full w-12 h-12">
-              <p className="text-2xl font-bold
-              after:content-[''] after:absolute after:-left-2 after:-top-2 after:w-16 after:h-16 after:-z-[1]
-              after:rounded-full after:bg-gray-100
-              ">1</p>
+            {/* Step 1 */}
+            <div className="flex flex-col items-center relative z-10 group">
+              <div className="w-24 h-24 rounded-[2rem] bg-slate-900 border border-white/10 shadow-2xl flex items-center justify-center text-3xl font-black text-purple-400 group-hover:scale-110 transition-all duration-500 group-hover:shadow-purple-500/20">
+                1
+              </div>
+              <div className="mt-8 text-center">
+                <h4 className="text-xl font-bold text-white">Enter destination</h4>
+                <p className="text-slate-500 mt-2 text-sm leading-relaxed">Tell us where you're heading in the city.</p>
+              </div>
             </div>
-            <p className="pt-2 text-slate-500 text-lg tracking-wide">
-              Enter your destination
-            </p>
-          </div>
 
-          <div className="flex flex-col items-center">
-            <div className="flex flex-col bg-blue-500 text-white relative justify-center items-center rounded-full w-12 h-12">
-              <p className="text-2xl font-bold
-              after:content-[''] after:absolute after:-left-2 after:-top-2 after:w-16 after:h-16 after:-z-[1]
-              after:rounded-full after:bg-gray-100
-              ">2</p>
+            {/* Step 2 */}
+            <div className="flex flex-col items-center relative z-10 group">
+              <div className="w-24 h-24 rounded-[2rem] bg-slate-900 border border-white/10 shadow-2xl flex items-center justify-center text-3xl font-black text-purple-400 group-hover:scale-110 transition-all duration-500 group-hover:shadow-purple-500/20">
+                2
+              </div>
+              <div className="mt-8 text-center">
+                <h4 className="text-xl font-bold text-white">Pick date and time</h4>
+                <p className="text-slate-500 mt-2 text-sm leading-relaxed">Select your arrival and departure schedule.</p>
+              </div>
             </div>
-            <p className="pt-2 text-slate-500 text-lg tracking-wide">
-              Pick date and time
-            </p>
-          </div>
 
-          <div className="flex flex-col items-center">
-            <div className="flex flex-col bg-blue-500 text-white relative justify-center items-center rounded-full w-12 h-12">
-              <p className="text-2xl font-bold
-              before:content=[''] before:absolute before:w-[1000px]
-              before:-z-10 before:top-1/2 before:h-[2px]
-              before:-left-[920px] before:bg-blue-500
-              
-              after:content-[''] after:absolute after:-left-2 
-              after:-top-2 after:w-16 after:h-16 after:-z-[1]
-              after:rounded-full after:bg-gray-100
-              ">3</p>
+            {/* Step 3 */}
+            <div className="flex flex-col items-center relative z-10 group">
+              <div className="w-24 h-24 rounded-[2rem] bg-purple-600 shadow-2xl shadow-purple-900/40 flex items-center justify-center text-3xl font-black text-white group-hover:scale-110 transition-all duration-500">
+                3
+              </div>
+              <div className="mt-8 text-center">
+                <h4 className="text-xl font-bold text-white">Pick a spot</h4>
+                <p className="text-slate-500 mt-2 text-sm leading-relaxed">Choose from the best available gated spots.</p>
+              </div>
             </div>
-            <p className="pt-2 text-slate-500 text-lg tracking-wide">
-              Pick a spot
-            </p>
-          </div>
 
+          </div>
         </div>
       </section>
 
-      <h2 className="text-2xl sm:text-5xl text-center pb-32 text-slate-500">
-        No more running around looking for a parking spot.
-      </h2>
-
-      <section>
-        <div className="pt-16 w-full absolute left-0 sm:bg-map bg-cover bg-no-repeat bg-center bg-blue-600 bg-opacity-25 
-        bg-blend-overlay">
-          <div className="grid grid-cols-1 sm:grid-cols-2 container pb-16 place-items-center sm:place-items-start">
-            <div className="flex flex-col text-zinc-600 text-center sm:text-left">
-              <p className="text-3xl sm:text-4xl font-bold">Fully responsive</p>
-              <p className="text-md sm:text-lg pt-2 tracking-tight">It feels just like a mobile app.</p>
-            </div>
-
-            <div className="pt-8 sm:pt-0">
-              <Image alt="mobile screenshot" width={320} height={400}
-              src="/gateless-parking-mobile.png" />
-            </div>
-          </div>
-
-          <Footer />
+      {/* 4. Final CTA */}
+      <section className="py-32">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-4xl md:text-7xl font-black text-white tracking-tight mb-8">
+            Park smarter in <span className="text-purple-500">Nepal.</span>
+          </h2>
+          <p className="text-slate-400 text-lg md:text-xl font-medium max-w-2xl mx-auto">
+            Join thousands of drivers who have ditched the ticket and moved Autospace.
+          </p>
         </div>
       </section>
+
+      <Footer />
     </main>
   );
 }

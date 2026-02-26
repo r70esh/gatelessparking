@@ -27,36 +27,40 @@ async function MyBookingsPage() {
     })
 
   return (
-    <div className='-mt-16 p-4'>
-        <div className="sm:container bg-gray-50 shadow">
-            <header className="text-2xl sm:text-4xl text-center w-full p-4">My Bookings</header>
-            <hr />
-            {
-                bookings.map(booking => (
-                    <div key={booking.id}>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 p-2 items-center">
-                            <div className="flex flex-col space-y-1 items-start">
-                                <p className="text-sm text-slate-400">{booking.status}</p>
-                                <p className="text-xl font-bole">
-                                    {getStreetFromAddress(((booking.locationid as unknown) as ParkingLocation).address)}</p>
-                                <p className="text-sm">{format(booking.bookingdate, 'MMM, dd yyy')}</p>
-                                <p className='text-sm'>
-                                {format(booking.starttime, 'hh:mm a')} - {format(booking.endtime, 'hh:mm a')}</p>
-                            </div>
-                            {
-                                booking.status === BookingStatus.BOOKED &&
-                                <div className='flex sm:flex-col sm:space-y-2 items-end'>
-                                    <CancelBookingButton param={JSON.parse(JSON.stringify(booking.id))} />
-                                    <EditBookingButton booking={JSON.parse(JSON.stringify(booking))} />
-                                </div>
-                            }
-                        </div>
-                        <hr />
-                    </div>
-                ))
-            }
+ <div className='-mt-16 p-4'>
+  <div className="sm:container">
+    <header className="text-2xl sm:text-4xl text-center w-full p-4">My Bookings</header>
+    
+    {bookings.map(booking => (
+      <div key={booking.id} className="bg-white p-4 rounded-md shadow mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+          <div className="flex flex-col space-y-1">
+            <p className={`text-sm font-semibold ${
+              booking.status === BookingStatus.BOOKED ? 'text-green-600' :
+              booking.status === BookingStatus.CANCELLED ? 'text-red-600' : 'text-gray-500'
+            }`}>
+              {booking.status}
+            </p>
+            <p className="text-xl font-bold">
+              {getStreetFromAddress(((booking.locationid as unknown) as ParkingLocation).address)}
+            </p>
+            <p className="text-sm">{format(booking.bookingdate, 'MMM dd, yyyy')}</p>
+            <p className='text-sm'>
+              {format(booking.starttime, 'hh:mm a')} - {format(booking.endtime, 'hh:mm a')}
+            </p>
+          </div>
+
+          {booking.status === BookingStatus.BOOKED && (
+            <div className='flex sm:flex-col sm:space-y-2 items-end'>
+              <CancelBookingButton param={JSON.parse(JSON.stringify(booking.id))} />
+              <EditBookingButton booking={JSON.parse(JSON.stringify(booking))} />
+            </div>
+          )}
         </div>
-    </div>
+      </div>
+    ))}
+  </div>
+</div>
   )
 }
 

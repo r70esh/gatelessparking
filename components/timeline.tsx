@@ -1,51 +1,54 @@
+'use client'
+
 import React, { useCallback } from 'react'
 
 function Timeline() {
-
     const timeslots = useCallback(() => {
-        const formatTime = (hour: number, minutes: number) => {
-            let period = 'AM'
-            if (hour >= 12) {
-                period = 'PM'
-            }
-    
-            if (hour > 12) {
-                hour -= 12
-            }
-    
-            if (hour === 0) {
-                hour = 12
-            }
-    
-            const formattedMinutes = minutes < 10 ? `0${minutes}` : minutes
-            return `${hour}:${formattedMinutes} ${period}`
+        const formatTime = (hour: number) => {
+            const period = hour >= 12 ? 'PM' : 'AM'
+            const displayHour = hour % 12 === 0 ? 12 : hour % 12
+            return { time: displayHour, period }
         }
     
         const generateTimeSlots = () => {
-            const timeslots = []
-            for (let hour = 0; hour < 24; hour++) {
-                timeslots.push(formatTime(hour, 0))
+            const slots = []
+            // We only show labels for every 2 hours to keep it spacious
+            for (let hour = 0; hour < 24; hour += 2) {
+                slots.push({ ...formatTime(hour), index: hour })
             }
-            
-            return timeslots
+            return slots
         }
     
         return generateTimeSlots()
     }, [])
 
-
-  return (
-    <div className='absolute flex items-center top-16 bg-purple-300'>
-        {timeslots().map((time, index) => (
-            <div key={index} className='absolute' 
-            style={{left: `${60 * index}px`}}>
-                <p className="text-md -rotate-45 w-[100px] -left-4 absolute">
-                    {time}
-                </p>
-            </div>
-        ))}
-    </div>
-  )
+    return (
+        /* 1. Removing purple background, using absolute positioning with better spacing */
+        <div className='absolute top-6 flex items-center w-full'>
+            {timeslots().map((slot) => (
+                <div 
+                    key={slot.index} 
+                    className='absolute transition-opacity duration-500' 
+                    /* Note: 80px here matches the '40px' increment 
+                       from the TimelineTicks component (2 ticks per hour) 
+                    */
+                    style={{ left: `${80 * slot.index}px` }}
+                >
+                    <div className="flex flex-col items-center -translate-x-1/2">
+                        <p className="text-[11px] font-black text-slate-900 tracking-tighter uppercase">
+                            {slot.time}
+                            <span className="ml-0.5 text-[9px] text-slate-400 font-medium">
+                                {slot.period}
+                            </span>
+                        </p>
+                        
+                        {/* A tiny indicator dot to tie the label to the line below */}
+                        <div className="w-1 h-1 bg-indigo-500 rounded-full mt-1 opacity-40" />
+                    </div>
+                </div>
+            ))}
+        </div>
+    )
 }
 
 export default Timeline
